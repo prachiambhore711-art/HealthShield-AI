@@ -1,0 +1,73 @@
+# ================================
+# HealthShield AI - Git Ignore
+# ================================
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Local databases
+*.db
+*.db.backup
+*.sqlite
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Logs
+*.log
+
+# Flutter / Dart
+frontend/.dart_tool/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.packages
+frontend/build/
+frontend/.pub-cache/
+
+# Android
+frontend/android/.gradle/
+frontend/android/local.properties
+frontend/android/app/build/
+frontend/android/.cxx/
+*.apk
+*.aab
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary / backup
+*.tmp
+*.temp
+*.bak
+
+# Generated
+shelf/
+workspace.xml
+# Old Flutter build backups
+frontend/build_old*/
+frontend/build_old
+
+# Android Gradle generated files
+frontend/android/build/
+
+# Local uploaded medical reports
+backend/storage/reports/

@@ -23,6 +23,7 @@ from backend.app.schemas.doctor import (
     EmergencyAccessActiveSession,
     EmergencyAccessHistoryItem
 )
+from backend.app.api.patient import resolve_report_file_path
 
 router = APIRouter(prefix="/api/doctor", tags=["Doctor"])
 
@@ -352,10 +353,11 @@ def get_authorized_patient_file(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access restricted. File does not belong to authorized patient.")
 
     # Stream file
-    if not os.path.exists(report.file_path):
+    resolved_path = resolve_report_file_path(report.file_path)
+    if not os.path.exists(resolved_path):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report file not found on disk.")
 
-    return FileResponse(report.file_path, filename=report.file_name)
+    return FileResponse(resolved_path, filename=report.file_name)
 
 @router.post("/emergency-access/{access_id}/revoke")
 def revoke_emergency_access_by_doctor(

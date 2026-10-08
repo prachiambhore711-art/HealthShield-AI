@@ -43,7 +43,25 @@ from backend.app.services.ai_service import generate_health_assistant_response
 router = APIRouter(prefix="/api/patient", tags=["patient"])
 
 # Storage configuration for reports (private directory)
-STORAGE_DIR = "backend/storage/reports"
+# Resolves to absolute path or environment variable to prevent working-directory mismatches in Docker/AWS
+_DEFAULT_STORAGE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "storage", "reports"))
+STORAGE_DIR = os.getenv("STORAGE_DIR", _DEFAULT_STORAGE_DIR)
+
+def resolve_report_file_path(path: str) -> str:
+    """Robustly resolve report file path across different environments and working directories."""
+    if os.path.exists(path):
+        return path
+    # Try resolving relative to storage dir
+    basename = os.path.basename(path)
+    candidate = os.path.join(STORAGE_DIR, basename)
+    if os.path.exists(candidate):
+        return candidate
+    # Try resolving relative to project root
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+    candidate2 = os.path.join(project_root, path)
+    if os.path.exists(candidate2):
+        return candidate2
+    return path
 
 # Ensure storage directory exists on runtime
 os.makedirs(STORAGE_DIR, exist_ok=True)
@@ -251,11 +269,12 @@ def get_report_file(
         if not active_access:
             raise HTTPException(status_code=403, detail="No active emergency authorization found for this patient")
 
-    if not os.path.exists(report.file_path):
+    resolved_path = resolve_report_file_path(report.file_path)
+    if not os.path.exists(resolved_path):
         raise HTTPException(status_code=404, detail="Physical report file not found on disk")
 
     return FileResponse(
-        path=report.file_path,
+        path=resolved_path,
         filename=report.file_name,
         media_type="application/octet-stream"
     )
@@ -275,9 +294,10 @@ def delete_medical_report(
         raise HTTPException(status_code=404, detail="Medical report not found")
 
     # Delete physical file from disk
-    if os.path.exists(report.file_path):
+    resolved_path = resolve_report_file_path(report.file_path)
+    if os.path.exists(resolved_path):
         try:
-            os.remove(report.file_path)
+            os.remove(resolved_path)
         except Exception:
             pass # Keep database deletion clean even if file was missing on disk
 

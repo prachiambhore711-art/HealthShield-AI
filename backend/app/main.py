@@ -154,3 +154,24 @@ def root():
         "app": "HealthShield AI API",
         "version": "1.0.0"
     }
+
+@app.get("/health")
+@app.get("/api/health")
+def health_check():
+    """Health check endpoint for AWS Load Balancer / App Runner / ECS container probes."""
+    db_status = "healthy"
+    try:
+        from backend.app.core.database import SessionLocal
+        from sqlalchemy import text
+        db = SessionLocal()
+        db.execute(text("SELECT 1"))
+        db.close()
+    except Exception as e:
+        db_status = f"unhealthy: {str(e)}"
+
+    return {
+        "status": "online",
+        "database": db_status,
+        "app": "HealthShield AI API",
+        "version": "1.0.0"
+    }
